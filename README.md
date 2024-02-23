@@ -1,2 +1,92 @@
-# sneake
-sneake game
+import pygame
+import sys
+import time
+import random
+
+BLACK = (0, 0, 0)
+WHITE = (255, 255, 255)
+GREEN = (0, 255, 0)
+RED = (255, 0, 0)
+
+WIDTH = 500
+HEIGHT = 500
+GRID_SIZE = 20
+
+pygame.init()
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption('Snake Game')
+
+clock = pygame.time.Clock()
+
+font = pygame.font.SysFont(None, 36)
+
+def draw_snake(snake):
+    for pos in snake:
+        pygame.draw.rect(screen, GREEN, (pos[0], pos[1], GRID_SIZE, GRID_SIZE))
+
+def draw_food(food_pos):
+    pygame.draw.rect(screen, RED, (food_pos[0], food_pos[1], GRID_SIZE, GRID_SIZE))
+
+def collision_with_boundaries(snake):
+    if snake[0][0] < 0 or snake[0][0] >= WIDTH or snake[0][1] < 0 or snake[0][1] >= HEIGHT:
+        return True
+    return False
+
+def collision_with_self(snake):
+    if snake[0] in snake[1:]:
+        return True
+    return False
+
+def generate_food():
+    x = random.randint(0, WIDTH - GRID_SIZE)
+    y = random.randint(0, HEIGHT - GRID_SIZE)
+    return (x // GRID_SIZE * GRID_SIZE, y // GRID_SIZE * GRID_SIZE)
+
+snake = [(WIDTH // 2, HEIGHT // 2)]
+food = generate_food()
+
+dx, dy = 0, GRID_SIZE
+score = 0
+
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_LEFT:
+                dx = -GRID_SIZE
+                dy = 0
+            if event.key == pygame.K_RIGHT:
+                dx = GRID_SIZE
+                dy = 0
+            if event.key == pygame.K_UP:
+                dx = 0
+                dy = -GRID_SIZE
+            if event.key == pygame.K_DOWN:
+                dx = 0
+                dy = GRID_SIZE
+
+    new_head = (snake[0][0] + dx, snake[0][1] + dy)
+    snake.insert(0, new_head)
+
+    if snake[0] == food:
+        food = generate_food()
+        score += 1
+    else:
+        snake.pop()
+
+    if collision_with_boundaries(snake) or collision_with_self(snake):
+        pygame.quit()
+        sys.exit()
+
+    screen.fill(BLACK)
+    draw_snake(snake)
+    draw_food(food)
+    
+    text = font.render(f'Score: {score}',True,WHITE)
+    screen.blit(text,(10,10))
+
+    pygame.display.update()
+    clock.tick(10)
